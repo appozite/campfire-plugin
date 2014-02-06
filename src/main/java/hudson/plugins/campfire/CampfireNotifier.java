@@ -192,17 +192,16 @@ public class CampfireNotifier extends Notifier {
         return context;
     }
 
-    private void publish(AbstractBuild<?, ?> build) throws IOException {
+    private void publish(
+        AbstractBuild<?, ?> build
+    ) throws IOException, InterruptedException {
         checkCampfireConnection();
 
         if (notificationTemplate == null || notificationTemplate.trim().length() == 0) {
             return;
         }
 
-        Map<String, String> context = buildContextFor(build);
-
-        String message = interpolate(notificationTemplate, context);
-
+        String message = getAwesomeMessage(build);
         room.speak(message);
 
         if (sound) {
@@ -214,6 +213,55 @@ public class CampfireNotifier extends Notifier {
           }
           room.play(message_sound);
         }
+    }
+
+    private String getAwesomeMessage(
+        AbstractBuild<?, ?> build
+    ) throws InterruptedException, IOException {
+        Result result = build.getResult();
+        String resultString = result.toString();
+        String emoticon = "";
+        if ("SUCCESS".equals(resultString)) {
+            emoticon = " :D";
+        } else if ("FAILURE".equals(resultString)) {
+            emoticon = " :(";
+        } else if ("UNKNOWN".equals(resultString)) {
+            emoticon = " :?";
+        } else if ("ABORTED".equals(resultString)) {
+            emoticon = " :!";
+        } else {
+            emoticon = " ??";
+        }
+        String buildNumber = build.getDisplayName();
+        EnvVars envVars = build.getEnvironment(TaskListener.NULL);
+        String branchInfo = "";
+        if (envVars.containsKey("BRANCH")) {
+            branchInfo = String.format(" %s",envVars.get("BRANCH"));
+        }
+        long durationSeconds = build.getDuration() / 1000L;
+        String durationString = "";
+        if (durationSeconds < 10) {
+            durationString += durationSeconds + "s";
+        } else {
+            if (durationSeconds >= 60) {
+                durationString += (durationSeconds/60) + "m";
+            }
+            long seconds = durationSeconds % 60;
+            if (seconds < 10) {
+                durationString += "0" + seconds + "s";
+            } else {
+                durationString += seconds + "s";
+            }
+        }
+        return String.format(
+            "%s %s %s%s \u2022 built%s %s",
+            build.getProject().getName(),
+            buildNumber,
+            resultString,
+            emoticon,
+            branchInfo,
+            hudsonUrl + build.getUrl()
+        );
     }
 
     private String getCommitHash(String changeLogPath) throws IOException {
