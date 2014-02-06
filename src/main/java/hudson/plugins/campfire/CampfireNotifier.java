@@ -1,25 +1,20 @@
 package hudson.plugins.campfire;
 
-import hudson.Extension;
-import hudson.Launcher;
+import hudson.*;
+import hudson.model.*;
 import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
-import hudson.model.Result;
 import hudson.scm.ChangeLogSet;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 
-import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Map;
+
+import org.kohsuke.stapler.DataBoundConstructor;
 
 public class CampfireNotifier extends Notifier {
 
