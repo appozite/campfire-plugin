@@ -1,30 +1,25 @@
 package hudson.plugins.campfire;
 
-import org.apache.commons.httpclient.Credentials;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import hudson.ProxyConfiguration;
+import hudson.model.Hudson;
 
-import javax.net.ssl.SSLProtocolException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.*;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import hudson.model.Hudson;
-import hudson.ProxyConfiguration;
+import javax.net.ssl.SSLProtocolException;
+import javax.xml.parsers.*;
+import javax.xml.xpath.*;
+
+import org.apache.commons.httpclient.*;
+import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.methods.*;
+import org.w3c.dom.*;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 public class Campfire {
     private String subdomain;
@@ -143,12 +138,18 @@ public class Campfire {
     }
 
     public Room findRoomByName(String name) {
-        for (Room room : getRooms()) {
-            if (room.getName().equals(name)) {
-                return room;
+        Pattern pattern = Pattern.compile("^[0-9]+$");
+        Matcher matcher = pattern.matcher(name);
+        if (matcher.find()) {
+            return new Room(this,name,name);
+        } else {
+            for (Room room : getRooms()) {
+                if (room.getName().equals(name)) {
+                    return room;
+                }
             }
+            return null;
         }
-        return null;
     }
 
     private Room createRoom(String name) {
