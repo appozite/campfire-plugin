@@ -13,6 +13,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import javax.net.ssl.SSLProtocolException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -73,6 +74,8 @@ public class Campfire {
         try {
             post.setRequestEntity(new StringRequestEntity(body, "application/xml", "UTF8"));
             return getClient().executeMethod(post);
+        } catch (SSLProtocolException e) {
+            return 200; // ignore
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
